@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><title>bridge stub test</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body data-theme="light">
+<script>
+/* 伪原生桥：用于在浏览器里验证 app.js ↔ Swift 的消息契约 */
+const TREE = {
+  '/demo': [
+    { name: '安全笔记', dir: true, path: '/demo/安全笔记' },
+    { name: '读书', dir: true, path: '/demo/读书' },
+    { name: '周报-2026-11.md', dir: false, path: '/demo/周报-2026-11.md' },
+    { name: '面试题库.md', dir: false, path: '/demo/面试题库.md' },
+    { name: 'logo.png', dir: false, path: '/demo/logo.png' }
+  ],
+  '/demo/安全笔记': [
+    { name: '内网渗透笔记.md', dir: false, path: '/demo/安全笔记/内网渗透笔记.md' },
+    { name: '域渗透.md', dir: false, path: '/demo/安全笔记/域渗透.md' }
+  ],
+  '/demo/读书': [{ name: '深度工作.md', dir: false, path: '/demo/读书/深度工作.md' }]
+};
+window.webkit = { messageHandlers: { monote: { postMessage(m) {
+  setTimeout(() => {
+    switch (m.cmd) {
+      case 'ready': window.MoNote.openDoc({ path: '/demo/周报-2026-11.md', name: '周报-2026-11.md',
+        content: '# 周报 2026-11\n\n本周完成 **即时渲染编辑器** 的内核。\n\n- 解析器\n- 编辑器\n- 外壳\n\n| 模块 | 状态 |\n|---|---|\n| parser | 完成 |\n| editor | 完成 |\n' });
+        window.MoNote.tree({ path: '/demo', entries: TREE['/demo'], focus: true }); break;
+      case 'listDir': window.MoNote.tree({ path: m.path, entries: TREE[m.path] || [] }); break;
+      case 'setTitle': break;
+      default: break;
+    }
+  }, 30);
+} } } };
+</script>
+</body>
+</html>
+<script>
+/* 复用 index.html 的骨架：直接注入同样的 DOM */
+document.body.innerHTML = `
+<div id="app">
+  <aside id="sidebar">
+    <div class="side-tabs"><button data-tab="outline" class="active">大纲</button><button data-tab="files">文件</button></div>
+    <div class="side-body">
+      <div id="outline-pane" class="pane active"></div>
+      <div id="files-pane" class="pane"><div class="files-head"><button id="btn-open-folder">打开文件夹…</button></div><div id="file-tree"></div></div>
+    </div>
+    <div class="side-foot"><span id="stat-chars">0 字</span><span id="stat-read">—</span></div>
+  </aside>
+  <main>
+    <div id="topbar"><button id="btn-sidebar">☰</button><div id="doc-title">未命名</div><div class="spacer"></div>
+      <span id="save-state">未保存</span><button id="btn-source">M↓</button><button id="btn-theme">◐</button><button id="btn-export">⇩</button></div>
+    <div id="editor-scroll"><div id="write"></div></div>
+    <div id="source-pane" hidden><textarea id="source-area" spellcheck="false"></textarea></div>
+    <div id="find-bar" hidden><input id="find-input" placeholder="查找…"><span id="find-count"></span>
+      <button id="find-prev">↑</button><button id="find-next">↓</button><button id="find-close">✕</button></div>
+  </main>
+</div>`;
+</script>
+<script src="js/parser.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

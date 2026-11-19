@@ -1,0 +1,101 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>parser roundtrip test</title></head>
+<body><div id="out"></div>
+<script src="js/parser.js"></script>
+<script>
+const SAMPLE = `---
+title: Test Doc
+tags: [a, b]
+---
+
+# 标题一
+
+这是一个**粗体**、*斜体*、\`inline code\`、~~删除线~~、==高亮==、[链接](https://example.com "t") 和 ![图](img/a.png) 的段落。
+第二行 soft break。
+
+## 二级标题
+
+> 引用第一行
+> 引用第二行 [^1]
+
+> [!NOTE]
+> 这是提示框
+
+- 无序项 1
+- 无序项 2
+  - 嵌套项
+    - 更深
+- [ ] 待办
+- [x] 已完成
+
+1. 有序一
+2. 有序二
+
+\`\`\`js
+function hello(name) {
+  // 注释
+  return "hi " + name;
+}
+\`\`\`
+
+| 左 | 中 | 右 |
+|:---|:--:|---:|
+| a | b | c |
+| d | e | f |
+
+***
+
+[TOC]
+
+$$
+E = mc^2
+$$
+
+正文里的公式 $a^2+b^2=c^2$ 与 emoji :smile: 。
+
+[^1]: 脚注内容
+
+<div class="x">raw html block</div>
+
+Setext Title
+============
+`;
+
+function serialize(container) {
+  let out = '';
+  const blocks = container.querySelectorAll('[data-type]');
+  blocks.forEach(b => {
+    out += MD.rawText(b) + '\n'.repeat(parseInt(b.dataset.nl || '0', 10));
+  });
+  return out;
+}
+
+const box = document.createElement('div');
+box.id = 'write';
+const chunks = MD.split(SAMPLE);
+box.innerHTML = chunks.map(c => MD.renderBlock(c.raw)).join('');
+const els = [...box.querySelectorAll('[data-type]')];
+els.forEach((el, i) => { if (chunks[i]) el.dataset.nl = chunks[i].nl; });
+
+// 逐块诊断
+const perBlock = [];
+els.forEach((el, i) => {
+  const back = MD.rawText(el);
+  if (back !== chunks[i].raw) perBlock.push({ i, raw: chunks[i].raw, back });
+});
+
+const back = serialize(box);
+const ok = back === SAMPLE;
+document.title = ok ? 'PASS' : 'FAIL';
+const res = { ok, chunks: chunks.length, els: els.length, perBlock };
+if (!ok) {
+  let i = 0; while (i < Math.min(back.length, SAMPLE.length) && back[i] === SAMPLE[i]) i++;
+  res.diffAt = i;
+  res.expected = JSON.stringify(SAMPLE.slice(Math.max(0, i - 60), i + 60));
+  res.actual = JSON.stringify(back.slice(Math.max(0, i - 60), i + 60));
+  res.missing = SAMPLE.length - back.length;
+}
+window.__RESULT = res;
+document.getElementById('out').textContent = JSON.stringify(res, null, 2);
+</script>
+</body></html>
