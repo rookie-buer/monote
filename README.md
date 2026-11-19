@@ -28,7 +28,7 @@
 只需要 macOS 命令行工具（`xcode-select --install`），不需要 Xcode 工程，不需要 npm。
 
 ```bash
-git clone <this-repo> monote && cd monote
+git clone https://github.com/rookie-buer/monote.git && cd monote
 ./build.sh                       # 产出 build/MoNote.app
 cp -R build/MoNote.app ~/Applications/
 xattr -dr com.apple.quarantine ~/Applications/MoNote.app   # 本地临时签名，去隔离标记
